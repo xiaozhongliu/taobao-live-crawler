@@ -15,7 +15,10 @@ grep.stdout.on('data', (data) => {
         if (line.includes('Visual Studio Code.app')) continue
 
         const values = line.trimLeft(' ').split(' ')
-        process.kill(values[0])
-        console.log(line)
+        const pid = values[0]
+        if (!/^[0-9]+$/.test(pid)) continue
+
+        console.log(pid)
+        process.kill(parseInt(pid))
     }
 })

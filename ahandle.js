@@ -5,11 +5,6 @@ const url = 'http://p.kwi9.com/h.CQLKMg'
 const child = CP.fork('./acrawler')
 child.send({ url })
 
-process.on('SIGINT', function () {
-    child.kill()
-    process.exit(2)
-})
-
 
 
 // const redis = require('redis')
@@ -22,5 +17,5 @@ process.on('SIGINT', function () {
 
 // process.on('SIGINT', function () {
 //     console.log('\ngoodbye')
-//     process.exit(2)
+//     process.exit(0)
 // })

@@ -4,10 +4,11 @@ const zlib = require('zlib')
 
 process.on('message', async message => {
     const browser = await puppeteer.launch()
-    const page = await browser.newPage()
+    const page = (await browser.pages())[0]
     await page.setRequestInterception(true)
     const api = 'http://h5api.m.taobao.com/h5/mtop.mediaplatform.live.encryption/1.0/'
 
+    // intercept request obtaining the web socket token
     page.on('request', req => {
         if (req.url.includes(api)) {
             console.log(`GET:   ${req.url}\n`)
@@ -21,6 +22,7 @@ process.on('message', async message => {
         const token = data.match(/"result":"(.*?)"/)[1]
         console.log(`RES:   ${await token}\n`)
 
+        // establish web socket connection (won't be ready immediately)
         setTimeout(() => {
             const url = `ws://acs.m.taobao.com/accs/auth?token=${token}`
             const ws = new WebSocket(url)
@@ -38,8 +40,21 @@ process.on('message', async message => {
         }, 1000)
     })
 
+    // open the taobao live page
     await page.goto(message.url, { timeout: 0 })
     console.log('\npage loaded\n')
+
+    // kill current child proc after 1 min
+    setTimeout(async () => {
+        console.log(`\nclosing page:`)
+        console.log(`  => ${await page.url()}`)
+
+        console.log('\nSIGINT\n')
+        // kill current browser (puppeteer procs)
+        browser.close()
+        // kill current child proc
+        process.exit(0)
+    }, 60000)
 })
 
 function decode(msg) {
