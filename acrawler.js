@@ -44,17 +44,17 @@ process.on('message', async message => {
     await page.goto(message.url, { timeout: 0 })
     console.log('\npage loaded\n')
 
-    // kill current child proc after 1 min
-    setTimeout(async () => {
-        console.log(`\nclosing page:`)
-        console.log(`  => ${await page.url()}`)
+    // // kill current child proc after 1 min
+    // setTimeout(async () => {
+    //     console.log(`\nclosing page:`)
+    //     console.log(`  => ${await page.url()}`)
 
-        console.log('\nSIGINT\n')
-        // kill current browser (puppeteer procs)
-        browser.close()
-        // kill current child proc
-        process.exit(0)
-    }, 60000)
+    //     console.log('\nSIGINT\n')
+    //     // kill current browser (puppeteer procs)
+    //     browser.close()
+    //     // kill current child proc
+    //     process.exit(0)
+    // }, 60000)
 })
 
 function decode(msg) {
