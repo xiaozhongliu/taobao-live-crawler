@@ -1,0 +1,12 @@
+{
+  "name": "taobao-live-crawler",
+  "version": "0.0.1",
+  "description": "A crawler on taobao live barrages.",
+  "main": "ahandle.js",
+  "author": "xiaozhong",
+  "license": "ISC",
+  "dependencies": {
+    "puppeteer": "^0.13.0",
+    "ws": "^3.3.2"
+  }
+}
