@@ -58,8 +58,10 @@ process.on('message', async message => {
 })
 
 function decode(msg) {
+    // base64 decode
     let buffer = Buffer.from(msg.data, 'base64')
     if (msg.compressType === 'GZIP') {
+        // gzip decode
         buffer = zlib.gunzipSync(buffer)
     }
     const bufferStr = buffer.join(',')
