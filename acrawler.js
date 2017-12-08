@@ -7,11 +7,12 @@ process.on('message', async message => {
     const page = (await browser.pages())[0]
     await page.setRequestInterception(true)
     const api = 'http://h5api.m.taobao.com/h5/mtop.mediaplatform.live.encryption/1.0/'
+    const { url } = message
 
     // intercept request obtaining the web socket token
     page.on('request', req => {
         if (req.url.includes(api)) {
-            console.log(`GET:   ${req.url}\n`)
+            console.log(`[${url}] getting token`)
         }
         req.continue()
     })
@@ -20,7 +21,6 @@ process.on('message', async message => {
 
         const data = await res.text()
         const token = data.match(/"result":"(.*?)"/)[1]
-        console.log(`RES:   ${await token}\n`)
 
         // establish web socket connection (won't be ready immediately)
         setTimeout(() => {
@@ -28,7 +28,7 @@ process.on('message', async message => {
             const ws = new WebSocket(url)
 
             ws.on('open', () => {
-                console.log(`OPEN:  ${url}\n`)
+                console.log(`\nOPEN:  ${url}\n`)
             })
             ws.on('close', () => {
                 console.log('DISCONN')
@@ -41,20 +41,18 @@ process.on('message', async message => {
     })
 
     // open the taobao live page
-    await page.goto(message.url, { timeout: 0 })
-    console.log('\npage loaded\n')
+    await page.goto(url, { timeout: 0 })
+    console.log(`[${url}] page loaded`)
 
-    // // kill current child proc after 1 min
-    // setTimeout(async () => {
-    //     console.log(`\nclosing page:`)
-    //     console.log(`  => ${await page.url()}`)
-
-    //     console.log('\nSIGINT\n')
-    //     // kill current browser (puppeteer procs)
-    //     browser.close()
-    //     // kill current child proc
-    //     process.exit(0)
-    // }, 60000)
+    // kill current child proc after 1 min
+    setTimeout(async () => {
+        console.log(`[${url}] closing browser`)
+        console.log(`[${url}] SIGINT`)
+        // kill current browser
+        browser.close()
+        // kill current child proc
+        process.exit(0)
+    }, 60000)
 })
 
 function decode(msg) {
@@ -72,8 +70,12 @@ function decode(msg) {
         return
     }
 
+    // // print for debugging
+    // console.log(bufferStr)
+    // console.log(buffer.toString())
+
     // first match is nick name and second match is barrage content
-    const barragePattern = /.*,[0-9]+,0,18,[0-9]+,(.*?),32,[0-9]+,[0-9]+,[0-9]+,[0-9]+,130,44,50,2,116,98,[0-9]+,0,10,[0-9]+,(.*?),18,20,10,12/
+    const barragePattern = /.*,[0-9]+,0,18,[0-9]+,(.*?),32,[0-9]+,[0-9]+,[0-9]+,[0-9]+,[0-9]+,44,50,2,116,98,[0-9]+,0,10,[0-9]+,(.*?),18,20,10,12/
     const matched = bufferStr.match(barragePattern)
     if (matched) {
         // console.log(bufferStr, buffer.toString())
