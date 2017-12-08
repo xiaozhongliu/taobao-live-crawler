@@ -1,76 +1,42 @@
 const net = require('net')
-const readline = require('readline')
 
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-})
+const roomid = process.argv[2]
+if (!roomid) {
+    console.log('please pass in douyu room id as the first argument')
+    console.log('e.g.: node queue/douyu 606118')
+    process.exit(0)
+}
 
-let roomid
-rl.question('输入房间号', (answer) => {
-    roomid = answer
-    rl.close()
+const client = net.connect({ host: 'openbarrage.douyutv.com', port: 8601 })
+sendData(client, `type@=loginreq/roomid@=${roomid}/`)
+sendData(client, `type@=joingroup/rid@=${roomid}/gid@=-9999/`)
 
-    const s = net.connect({ port: 8601, host: 'openbarrage.douyutv.com' }, () => {
-        console.log('connect success')
-    })
+client.on('data', formatData)
+client.on('error', console.log)
 
-    var msg = 'type@=loginreq/roomid@=' + roomid + '/'
-    sendData(s, msg)
-    msg = 'type@=joingroup/rid@=' + roomid + '/gid@=-9999/'
-    sendData(s, msg)
+setInterval(() => {
+    const stamp = new Date().getTime() / 1000
+    sendData(client, `type@=keeplive/tick@=${stamp}/`)
+}, 45000)
 
-    s.on('data', (chunk) => {
-        formatData(chunk)
-    })
-
-    s.on('error', (err) => {
-        console.log(err)
-    })
-
-    setInterval(() => {
-        let timestamp = parseInt(new Date() / 1000)
-        let msg = 'type@=keeplive/tick@=' + timestamp + '/'
-        sendData(s, msg)
-    }, 45000)
-})
-
-
-
-function sendData(s, msg) {
-    let data = new Buffer(msg.length + 13)
+function sendData(client, msg) {
+    const data = new Buffer(msg.length + 13)
     data.writeInt32LE(msg.length + 9, 0)
     data.writeInt32LE(msg.length + 9, 4)
     data.writeInt32LE(689, 8)
     data.write(msg + '\0', 12)
-    s.write(data)
+    client.write(data)
 }
 
-function formatData(msg) {
-    const sliced = msg.slice(12).toString()
-    // 减二删掉最后的'/'和'\0'
+function formatData(data) {
+    const sliced = data.slice(12).toString()
     const splited = sliced.substring(0, sliced.length - 2).split('/')
-    const map = formatDanmu(splited)
-    analyseDanmu(map)
-}
-
-function formatDanmu(msg) {
-    let map = {}
-    for (let i in msg) {
-        let splited = msg[i].split('@=')
-        map[splited[0]] = splited[1]
+    const map = {}
+    for (let item in splited) {
+        let pair = splited[item].split('@=')
+        map[pair[0]] = pair[1]
     }
-    return map
-}
-
-function analyseDanmu(msg) {
-    if (msg['type'] == 'chatmsg') {
-        console.log(msg['nn'] + ':' + msg['txt'])
-    }
-    if (msg['type'] == 'uenter') {
-        console.log('<=========[' + msg['nn'] + ']来了=========>')
-    }
-    if (msg['type'] == 'dgb') {
-        console.log('<$$$$$$$$$[' + msg['nn'] + ']送礼物了$$$$$$$$$>')
+    if (map.type == 'chatmsg') {
+        console.log(map.nn + ':' + map.txt)
     }
 }
