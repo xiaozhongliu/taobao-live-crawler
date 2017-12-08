@@ -1,8 +1,8 @@
-const CP = require('child_process')
+const cp = require('child_process')
 
 const url = 'http://p.kwi9.com/h.CQLKMg'
 
-const child = CP.fork('./acrawler')
+const child = cp.fork('./crawler')
 child.send({ url })
 
 

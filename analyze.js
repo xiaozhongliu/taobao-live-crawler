@@ -10,8 +10,8 @@ const barrage = '淘宝怎么可能让出原标'
 console.log(new Buffer(nick).join(','))
 console.log(new Buffer(barrage).join(','))
 
-const matched = bufferStr.match(/.*,[0-9]+,0,18,[0-9]+,(.*?),32,[0-9]+,[0-9]+,[0-9]+,[0-9]+,130,44,50,2,116,98,[0-9]+,0,10,[0-9]+,(.*?),18,20,10,12/)
+const matched = bufferStr.match(/.*,[0-9]+,0,18,[0-9]+,(.*?),32,[0-9]+,[0-9]+,[0-9]+,[0-9]+,[0-9]+,44,50,2,116,98,[0-9]+,0,10,[0-9]+,(.*?),18,20,10,12/)
 if (matched) {
-    console.log(new Buffer(res[1].split(',')).toString())
-    console.log(new Buffer(res[2].split(',')).toString())
+    console.log(new Buffer(matched[1].split(',')).toString())
+    console.log(new Buffer(matched[2].split(',')).toString())
 }
